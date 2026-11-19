@@ -15,6 +15,8 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
@@ -90,6 +92,10 @@ public class CarRaceController {
     private ArrayList<VBox> slides;
     private ArrayList<TranslateTransition> moves;
     private ArrayList<RotateTransition> spins;
+    
+    private ArrayList<FadeTransition> slideFades;
+    private MediaPlayer player;
+    
     private ScaleTransition winnerPop;
     private boolean started;
     
@@ -104,6 +110,8 @@ public class CarRaceController {
         slides = new ArrayList<>();
         moves = new ArrayList<>();
         spins = new ArrayList<>();
+        
+        slideFades = new ArrayList<>();
 
         drawLanes();
         drawFinishLine();
@@ -135,6 +143,8 @@ public class CarRaceController {
         slides.add(slide4);
         
         raceRoot.setVisible(false);
+        
+        startSlideshow();
     }
 
     private void drawLanes() {
@@ -210,9 +220,63 @@ public class CarRaceController {
         return new Group(tire, spoke);
     }
 
+    
+    private void startSlideshow() {
+        
+        Media media = new Media(getClass().getResource("sounds/race_music.wav").toExternalForm());
+        player = new MediaPlayer(media);
+        player.setCycleCount(MediaPlayer.INDEFINITE);
+        player.play();
+
+        
+        double time = 0;
+        for (VBox slide : slides) {
+            slide.setOpacity(0);
+            
+            FadeTransition fadeIn = new FadeTransition(Duration.seconds(1), slide);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.setDelay(Duration.seconds(time));
+
+            FadeTransition fadeOut = new FadeTransition(Duration.seconds(1), slide);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setDelay(Duration.seconds(time + 3));
+
+            slideFades.add(fadeIn);
+            slideFades.add(fadeOut);
+            
+            time = time + 4;
+        }
+
+        
+        FadeTransition endFade = new FadeTransition(Duration.seconds(1), slideshowRoot);
+        
+        endFade.setFromValue(1.0);
+        endFade.setToValue(0.0);
+        endFade.setDelay(Duration.seconds(time));
+        slideFades.add(endFade);
+
+        slideshowRoot.opacityProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.doubleValue() == 0) {
+                
+                showRace();
+            }
+        });
+
+        for (FadeTransition fade : slideFades) {
+            
+            fade.play();
+        }
+    }
+
     @FXML
     private void skipButtonPressed(ActionEvent event) {
         
+        for (FadeTransition fade : slideFades) {
+            
+            fade.stop();
+        }
         showRace();
     }
 
@@ -223,6 +287,8 @@ public class CarRaceController {
         }
         
         raceShown = true;
+        
+        player.stop();
         
         slideshowRoot.setVisible(false);
         raceRoot.setVisible(true);

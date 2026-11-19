@@ -16,6 +16,7 @@
     -fx-font-weight: bold;
 }
 
+
 #pauseButton {
     -fx-background-color: royalblue;
     -fx-text-fill: white;
@@ -46,6 +47,7 @@
     -fx-font-size: 14px;
     -fx-text-fill: darkslategray;
 }
+
 
 .results-title {
     -fx-font-size: 13px;
