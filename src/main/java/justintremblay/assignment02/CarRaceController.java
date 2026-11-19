@@ -1,9 +1,17 @@
 package justintremblay.assignment02;
 
+import java.util.ArrayList;
 import javafx.fxml.FXML;
+import javafx.scene.Group;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Line;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
 /**
  * Controller of the car race. Draws the cars on the track and handles the buttons, the
@@ -16,12 +24,21 @@ public class CarRaceController {
     private Pane trackPane;
 
     private CarRaceModel model;
+    private ArrayList<Group> carShapes;
+    private ArrayList<Group> wheels;
 
     public void initialize() {
         model = new CarRaceModel();
+        carShapes = new ArrayList<>();
+        wheels = new ArrayList<>();
 
         drawLanes();
         drawFinishLine();
+        for (Car car : model.getCars()) {
+            Group carShape = createCar(car);
+            carShapes.add(carShape);
+            trackPane.getChildren().add(carShape);
+        }
     }
 
     private void drawLanes() {
@@ -47,5 +64,53 @@ public class CarRaceController {
                 trackPane.getChildren().add(square);
             }
         }
+    }
+
+    private Group createCar(Car car) {
+        Polygon body = new Polygon(0.0, 32.0, 10.0, 22.0, 30.0, 20.0, 82.0, 20.0,
+                102.0, 25.0, 110.0, 32.0, 110.0, 42.0, 0.0, 42.0);
+        body.setFill(car.getColor());
+        body.setStroke(Color.BLACK);
+
+        Polygon roof = new Polygon(28.0, 20.0, 40.0, 5.0, 74.0, 5.0, 86.0, 20.0);
+        roof.setFill(car.getColor());
+        roof.setStroke(Color.BLACK);
+
+        Rectangle backWindow = new Rectangle(39, 8, 17, 11);
+        backWindow.setFill(Color.LIGHTSKYBLUE);
+        Rectangle frontWindow = new Rectangle(59, 8, 17, 11);
+        frontWindow.setFill(Color.LIGHTSKYBLUE);
+
+        Rectangle plate = new Rectangle(42, 24, 28, 15);
+        plate.setFill(Color.WHITE);
+        plate.setArcWidth(6);
+        plate.setArcHeight(6);
+        Text numberText = new Text(48, 36, String.valueOf(car.getNumber()));
+        numberText.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+
+        Rectangle headlight = new Rectangle(103, 27, 6, 5);
+        headlight.setFill(Color.LIGHTYELLOW);
+        headlight.setStroke(Color.BLACK);
+
+        Group backWheel = createWheel(25, 42);
+        Group frontWheel = createWheel(85, 42);
+        wheels.add(backWheel);
+        wheels.add(frontWheel);
+
+        Group carShape = new Group(body, roof, backWindow, frontWindow, plate, numberText,
+                headlight, backWheel, frontWheel);
+        carShape.setLayoutX(car.getX());
+        carShape.setLayoutY(car.getY());
+        return carShape;
+    }
+
+    private Group createWheel(double x, double y) {
+        Circle tire = new Circle(x, y, 9, Color.BLACK);
+        tire.setStroke(Color.GRAY);
+        tire.setStrokeWidth(2);
+        Line spoke = new Line(x, y, x, y - 8);
+        spoke.setStroke(Color.WHITE);
+        spoke.setStrokeWidth(2);
+        return new Group(tire, spoke);
     }
 }
