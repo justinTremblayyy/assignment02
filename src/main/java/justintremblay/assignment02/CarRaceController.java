@@ -12,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -64,22 +65,43 @@ public class CarRaceController {
     @FXML
     private Label resultLabel4;
 
+    @FXML
+    private BorderPane raceRoot;
+
+    @FXML
+    private VBox slideshowRoot;
+
+    @FXML
+    private VBox slide1;
+
+    @FXML
+    private VBox slide2;
+
+    @FXML
+    private VBox slide3;
+
+    @FXML
+    private VBox slide4;
+
     private CarRaceModel model;
     private ArrayList<Group> carShapes;
     private ArrayList<Group> wheels;
     private ArrayList<Label> resultLabels;
+    private ArrayList<VBox> slides;
     private ArrayList<TranslateTransition> moves;
     private ArrayList<RotateTransition> spins;
     private ScaleTransition winnerPop;
     private boolean started;
     
     private boolean paused;
+    private boolean raceShown;
 
     public void initialize() {
         model = new CarRaceModel();
         carShapes = new ArrayList<>();
         wheels = new ArrayList<>();
         resultLabels = new ArrayList<>();
+        slides = new ArrayList<>();
         moves = new ArrayList<>();
         spins = new ArrayList<>();
 
@@ -106,6 +128,13 @@ public class CarRaceController {
                 carMoved(index, newValue.doubleValue());
             });
         }
+
+        slides.add(slide1);
+        slides.add(slide2);
+        slides.add(slide3);
+        slides.add(slide4);
+        
+        raceRoot.setVisible(false);
     }
 
     private void drawLanes() {
@@ -179,6 +208,24 @@ public class CarRaceController {
         spoke.setStroke(Color.WHITE);
         spoke.setStrokeWidth(2);
         return new Group(tire, spoke);
+    }
+
+    @FXML
+    private void skipButtonPressed(ActionEvent event) {
+        
+        showRace();
+    }
+
+    private void showRace() {
+        
+        if (raceShown) {
+            return;
+        }
+        
+        raceShown = true;
+        
+        slideshowRoot.setVisible(false);
+        raceRoot.setVisible(true);
     }
 
     @FXML
