@@ -8,8 +8,12 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
- * Car race simulation
- *
+ * Car race simulation made with the Model View Controller pattern.
+ * the view is the CarRace.fxml file, the controller is CarRaceController 
+ * and the model is CarRaceModel with the Car class.
+ * 
+ * git: https://github.com/justinTremblayyy/assignment02.git
+ * 
  * @author Justin Tremblay
  */
 public class App extends Application {
