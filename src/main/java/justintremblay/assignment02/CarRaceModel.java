@@ -35,6 +35,7 @@ public class CarRaceModel {
         return finishOrder;
     }
 
+    
     public void randomizeSpeeds() {
         for (Car car : cars) {
             car.setSpeed(120 + Math.random() * 60);
@@ -47,6 +48,7 @@ public class CarRaceModel {
 
     public boolean hasCrossed(Car car) {
         return car.getX() + CAR_LENGTH >= FINISH_X;
+        
     }
 
     public boolean hasFinished(Car car) {
@@ -59,6 +61,7 @@ public class CarRaceModel {
         }
     }
 
+    
     public boolean isRaceOver() {
         return finishOrder.size() == cars.size();
     }
@@ -67,6 +70,7 @@ public class CarRaceModel {
         if (finishOrder.isEmpty()) {
             return null;
         }
+        
         return finishOrder.get(0);
     }
 
@@ -76,4 +80,5 @@ public class CarRaceModel {
             car.setX(START_X);
         }
     }
+    
 }
