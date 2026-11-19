@@ -1,6 +1,10 @@
 package justintremblay.assignment02;
 
 import java.util.ArrayList;
+import javafx.animation.Animation;
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
@@ -16,6 +20,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 /**
  * Controller of the car race. Draws the cars on the track and handles the buttons, the
@@ -60,11 +65,16 @@ public class CarRaceController {
     private CarRaceModel model;
     private ArrayList<Group> carShapes;
     private ArrayList<Group> wheels;
+    private ArrayList<TranslateTransition> moves;
+    private ArrayList<RotateTransition> spins;
+    private boolean started;
 
     public void initialize() {
         model = new CarRaceModel();
         carShapes = new ArrayList<>();
         wheels = new ArrayList<>();
+        moves = new ArrayList<>();
+        spins = new ArrayList<>();
 
         drawLanes();
         drawFinishLine();
@@ -72,6 +82,13 @@ public class CarRaceController {
             Group carShape = createCar(car);
             carShapes.add(carShape);
             trackPane.getChildren().add(carShape);
+        }
+
+        for (int i = 0; i < carShapes.size(); i++) {
+            int index = i;
+            carShapes.get(i).translateXProperty().addListener((observable, oldValue, newValue) -> {
+                carMoved(index, newValue.doubleValue());
+            });
         }
     }
 
@@ -150,6 +167,35 @@ public class CarRaceController {
 
     @FXML
     private void startButtonPressed(ActionEvent event) {
+        if (started) {
+            return;
+        }
+        started = true;
+        model.randomizeSpeeds();
+        moves.clear();
+        spins.clear();
+
+        for (int i = 0; i < model.getCars().size(); i++) {
+            Car car = model.getCars().get(i);
+            TranslateTransition move = new TranslateTransition(
+                    Duration.seconds(CarRaceModel.DISTANCE / car.getSpeed()), carShapes.get(i));
+            move.setFromX(0);
+            move.setToX(CarRaceModel.DISTANCE);
+            move.setInterpolator(Interpolator.LINEAR);
+            moves.add(move);
+            spins.add(createSpin(wheels.get(i * 2), car));
+            spins.add(createSpin(wheels.get(i * 2 + 1), car));
+        }
+
+        for (TranslateTransition move : moves) {
+            move.play();
+        }
+        for (RotateTransition spin : spins) {
+            spin.play();
+        }
+        titleLabel.setText("Race in Progress");
+        messageLabel.setText("The race has started!");
+        infoLabel.setText("TranslateTransition moves the cars, RotateTransition spins the wheels.");
     }
 
     @FXML
@@ -158,5 +204,23 @@ public class CarRaceController {
 
     @FXML
     private void resetButtonPressed(ActionEvent event) {
+    }
+
+    private RotateTransition createSpin(Group wheel, Car car) {
+        RotateTransition spin = new RotateTransition(Duration.seconds(60 / car.getSpeed()), wheel);
+        spin.setByAngle(360);
+        spin.setCycleCount(Animation.INDEFINITE);
+        spin.setInterpolator(Interpolator.LINEAR);
+        return spin;
+    }
+
+    private void carMoved(int index, double distance) {
+        Car car = model.getCars().get(index);
+        model.updatePosition(car, distance);
+
+        if (distance >= CarRaceModel.DISTANCE && spins.size() > index * 2 + 1) {
+            spins.get(index * 2).stop();
+            spins.get(index * 2 + 1).stop();
+        }
     }
 }
