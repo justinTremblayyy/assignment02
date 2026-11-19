@@ -7,4 +7,9 @@ package justintremblay.assignment02;
  * @author Justin Tremblay
  */
 public class CarRaceController {
+    private CarRaceModel model;
+
+    public void initialize() {
+        model = new CarRaceModel();
+    }
 }
