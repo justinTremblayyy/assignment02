@@ -1,9 +1,13 @@
 package justintremblay.assignment02;
 
 import java.util.ArrayList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
@@ -22,6 +26,36 @@ import javafx.scene.text.Text;
 public class CarRaceController {
     @FXML
     private Pane trackPane;
+
+    @FXML
+    private Slider speedSlider;
+
+    @FXML
+    private Label speedLabel;
+
+    @FXML
+    private VBox messageBox;
+
+    @FXML
+    private Label titleLabel;
+
+    @FXML
+    private Label messageLabel;
+
+    @FXML
+    private Label infoLabel;
+
+    @FXML
+    private Label resultLabel1;
+
+    @FXML
+    private Label resultLabel2;
+
+    @FXML
+    private Label resultLabel3;
+
+    @FXML
+    private Label resultLabel4;
 
     private CarRaceModel model;
     private ArrayList<Group> carShapes;
@@ -112,5 +146,17 @@ public class CarRaceController {
         spoke.setStroke(Color.WHITE);
         spoke.setStrokeWidth(2);
         return new Group(tire, spoke);
+    }
+
+    @FXML
+    private void startButtonPressed(ActionEvent event) {
+    }
+
+    @FXML
+    private void pauseButtonPressed(ActionEvent event) {
+    }
+
+    @FXML
+    private void resetButtonPressed(ActionEvent event) {
     }
 }
