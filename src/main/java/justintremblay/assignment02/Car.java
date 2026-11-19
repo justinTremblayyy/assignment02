@@ -29,6 +29,7 @@ public class Car {
         this.type = type;
     }
 
+    
     public int getNumber() {
         return number;
     }
@@ -41,6 +42,8 @@ public class Car {
         return x;
     }
 
+    
+    
     public void setX(double x) {
         this.x = x;
     }
@@ -57,6 +60,7 @@ public class Car {
         return speed;
     }
 
+    
     public void setSpeed(double speed) {
         this.speed = speed;
     }
@@ -65,6 +69,7 @@ public class Car {
         return color;
     }
 
+    
     public void setColor(Color color) {
         this.color = color;
     }
