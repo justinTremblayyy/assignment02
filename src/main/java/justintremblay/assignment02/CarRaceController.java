@@ -2,8 +2,10 @@ package justintremblay.assignment02;
 
 import java.util.ArrayList;
 import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -65,14 +67,19 @@ public class CarRaceController {
     private CarRaceModel model;
     private ArrayList<Group> carShapes;
     private ArrayList<Group> wheels;
+    private ArrayList<Label> resultLabels;
     private ArrayList<TranslateTransition> moves;
     private ArrayList<RotateTransition> spins;
+    private ScaleTransition winnerPop;
     private boolean started;
+    
+    private boolean paused;
 
     public void initialize() {
         model = new CarRaceModel();
         carShapes = new ArrayList<>();
         wheels = new ArrayList<>();
+        resultLabels = new ArrayList<>();
         moves = new ArrayList<>();
         spins = new ArrayList<>();
 
@@ -83,6 +90,15 @@ public class CarRaceController {
             carShapes.add(carShape);
             trackPane.getChildren().add(carShape);
         }
+
+        resultLabels.add(resultLabel1);
+        resultLabels.add(resultLabel2);
+        resultLabels.add(resultLabel3);
+        resultLabels.add(resultLabel4);
+
+        speedSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            changeSpeed(newValue.doubleValue());
+        });
 
         for (int i = 0; i < carShapes.size(); i++) {
             int index = i;
@@ -167,6 +183,21 @@ public class CarRaceController {
 
     @FXML
     private void startButtonPressed(ActionEvent event) {
+        
+        if (paused) {
+            for (int i = 0; i < moves.size(); i++) {
+                if (carShapes.get(i).getTranslateX() < CarRaceModel.DISTANCE) {
+                    moves.get(i).play();
+                    spins.get(i * 2).play();
+                    spins.get(i * 2 + 1).play();
+                }
+            }
+            paused = false;
+            titleLabel.setText("Race in Progress");
+            messageLabel.setText("The race continues!");
+            return;
+        }
+        
         if (started) {
             return;
         }
@@ -182,6 +213,9 @@ public class CarRaceController {
             move.setFromX(0);
             move.setToX(CarRaceModel.DISTANCE);
             move.setInterpolator(Interpolator.LINEAR);
+            
+            move.setRate(speedSlider.getValue());
+            
             moves.add(move);
             spins.add(createSpin(wheels.get(i * 2), car));
             spins.add(createSpin(wheels.get(i * 2 + 1), car));
@@ -200,17 +234,69 @@ public class CarRaceController {
 
     @FXML
     private void pauseButtonPressed(ActionEvent event) {
+        
+        if (started && !paused && !model.isRaceOver()) {
+            
+            for (TranslateTransition move : moves) {
+                move.pause();
+            }
+            
+            for (RotateTransition spin : spins) {
+                spin.pause();
+            }
+            paused = true;
+            titleLabel.setText("Race Paused");
+            messageLabel.setText("Press Start to continue the race.");
+        }
     }
 
     @FXML
     private void resetButtonPressed(ActionEvent event) {
+        
+        for (TranslateTransition move : moves) {
+            move.stop();
+        }
+        
+        for (RotateTransition spin : spins) {
+            spin.stop();
+        }
+        
+        moves.clear();
+        spins.clear();
+        started = false;
+        paused = false;
+
+        if (winnerPop != null) {
+            winnerPop.stop();
+        }
+        for (Group carShape : carShapes) {
+            carShape.setTranslateX(0);
+            carShape.setScaleX(1);
+            carShape.setScaleY(1);
+        }
+        
+        for (Group wheel : wheels) {
+            wheel.setRotate(0);
+        }
+        
+        model.reset();
+        titleLabel.setText("Ready to Race");
+        messageLabel.setText("Press Start to begin the race.");
+        infoLabel.setText("");
+        for (Label resultLabel : resultLabels) {
+            resultLabel.setText("-");
+        }
     }
+    
 
     private RotateTransition createSpin(Group wheel, Car car) {
         RotateTransition spin = new RotateTransition(Duration.seconds(60 / car.getSpeed()), wheel);
         spin.setByAngle(360);
         spin.setCycleCount(Animation.INDEFINITE);
         spin.setInterpolator(Interpolator.LINEAR);
+        
+        spin.setRate(speedSlider.getValue());
+        
         return spin;
     }
 
@@ -218,9 +304,71 @@ public class CarRaceController {
         Car car = model.getCars().get(index);
         model.updatePosition(car, distance);
 
+        if (started && model.hasCrossed(car) && !model.hasFinished(car)) {
+            model.carFinished(car);
+            int place = model.getFinishOrder().size();
+            if (place == 1) {
+                messageLabel.setText(car + " crossed the finish line first!");
+            } else {
+                messageLabel.setText(car + " finished " + getPlaceName(place) + ".");
+            }
+            if (model.isRaceOver()) {
+                showResults();
+            }
+        }
+
         if (distance >= CarRaceModel.DISTANCE && spins.size() > index * 2 + 1) {
             spins.get(index * 2).stop();
             spins.get(index * 2 + 1).stop();
         }
     }
+
+    
+    private void changeSpeed(double speed) {
+        
+        for (TranslateTransition move : moves) {
+            move.setRate(speed);
+        }
+        
+        for (RotateTransition spin : spins) {
+            spin.setRate(speed);
+        }
+        speedLabel.setText(String.format("%.1fx", speed));
+    }
+
+    private String getPlaceName(int place) {
+        if (place == 1) {
+            return "1st";
+        } else if (place == 2) {
+            return "2nd";
+        } else if (place == 3) {
+            return "3rd";
+        }
+        return place + "th";
+    }
+
+    private void showResults() {
+        Car winner = model.getWinner();
+        titleLabel.setText("Race Finished!");
+        messageLabel.setText("Congratulations! " + winner + " is the winner!");
+        for (int i = 0; i < model.getFinishOrder().size(); i++) {
+            Car car = model.getFinishOrder().get(i);
+            resultLabels.get(i).setText(getPlaceName(i + 1) + "    " + car + "  " + car.getType());
+        }
+        infoLabel.setText("Great race! Translate, Rotate, Scale and Fade transitions were used.");
+
+        FadeTransition fade = new FadeTransition(Duration.millis(800), messageBox);
+        fade.setFromValue(0.2);
+        fade.setToValue(1.0);
+        fade.play();
+
+        Group winnerShape = carShapes.get(model.getCars().indexOf(winner));
+        winnerPop = new ScaleTransition(Duration.millis(400), winnerShape);
+        winnerPop.setToX(1.2);
+        winnerPop.setToY(1.2);
+        winnerPop.setCycleCount(4);
+        winnerPop.setAutoReverse(true);
+        winnerPop.play();
+    }
+    
 }
